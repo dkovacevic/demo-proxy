@@ -35,8 +35,8 @@ public class WebSocket {
                 .withConfig(config)
                 .build();
 
-        final String wssUrl = "wss://services.zinfra.io/roman/await";
-        final String proxyUrl = "https://services.zinfra.io/roman";
+        final String wssUrl = "wss://services.zinfra.io/proxy/await";
+        final String proxyUrl = "https://services.zinfra.io/proxy";
         final String appKey = args[0];
 
         URI wss = client

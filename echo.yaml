@@ -1,4 +1,4 @@
-proxy_url: https://services.zinfra.io/roman
-websocket_url: wss://services.zinfra.io/roman/await
+proxy_url: https://services.zinfra.io/proxy
+websocket_url: wss://services.zinfra.io/proxy/await
 service_authentication: 
 app_key: 
