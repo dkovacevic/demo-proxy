@@ -59,6 +59,11 @@ public class WebSocket {
                 System.out.printf("Websocket onConnectFailure: reason: %s\n", e);
                 return true;
             }
+
+            @Override
+            public long getDelay() {
+                return 0L;
+            }
         });
 
         container.connectToServer(new WebSocket(client, proxyUrl), wss);
