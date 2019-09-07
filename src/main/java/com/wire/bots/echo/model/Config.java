@@ -15,11 +15,4 @@ public class Config extends Configuration {
 
     @JsonProperty("service_authentication")
     public String authentication;
-
-    @JsonProperty("app_key")
-    public String appKey;
-
-    @JsonProperty("websocket_url")
-    public String websocketUrl;
-
 }

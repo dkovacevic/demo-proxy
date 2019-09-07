@@ -5,17 +5,14 @@ import com.wire.bots.echo.model.MessageOut;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path("/webhook")
+@Path("/echo/webhook")
 @Produces(MediaType.APPLICATION_JSON)
 public class Webhook {
     private final WebTarget proxy;
@@ -24,6 +21,13 @@ public class Webhook {
     public Webhook(Client client, String proxyUrl, String authentication) {
         this.authentication = authentication;
         this.proxy = client.target(proxyUrl);
+    }
+
+    @GET
+    public Response status() {
+        return Response.
+                ok().
+                build();
     }
 
     @POST

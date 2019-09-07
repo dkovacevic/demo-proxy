@@ -1,4 +1,2 @@
 proxy_url: https://services.zinfra.io/proxy
-websocket_url: wss://services.zinfra.io/proxy/await
-service_authentication: 
-app_key: 
+service_authentication:

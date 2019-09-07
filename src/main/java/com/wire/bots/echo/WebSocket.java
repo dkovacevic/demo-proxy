@@ -83,9 +83,10 @@ public class WebSocket {
 
         Response response = null;
 
+        MessageOut messageOut = new MessageOut();
+
         switch (payload.type) {
             case "conversation.init": {
-                MessageOut messageOut = new MessageOut();
                 messageOut.type = "text";
                 messageOut.text = "Hi there!";
                 response = proxy
@@ -96,7 +97,8 @@ public class WebSocket {
             }
             break;
             case "conversation.new_text": {
-                MessageOut messageOut = new MessageOut();
+                assert payload.isValidText();
+
                 messageOut.type = "text";
                 messageOut.text = "You wrote: " + payload.text;
                 response = proxy
@@ -107,7 +109,8 @@ public class WebSocket {
             }
             break;
             case "conversation.new_image": {
-                MessageOut messageOut = new MessageOut();
+                assert payload.isValidImage();
+                
                 messageOut.type = "image";
                 messageOut.image = payload.image;
                 response = proxy
@@ -118,7 +121,6 @@ public class WebSocket {
             }
             break;
             case "conversation.user_joined": {
-                MessageOut messageOut = new MessageOut();
                 messageOut.type = "text";
                 messageOut.text = "Hello!";
                 response = proxy
@@ -130,8 +132,15 @@ public class WebSocket {
             break;
         }
 
-        if (response != null && response.getStatus() != 200) {
-            System.out.printf("ERROR: onMessage: %s %d\n", response.readEntity(String.class), response.getStatus());
+        if (response != null) {
+            if (response.getStatus() != 200)
+                System.out.printf("ERROR sending Message: bot: %s `%s` error: %s, code: %d\n",
+                        payload.botId,
+                        messageOut.type,
+                        response.readEntity(String.class),
+                        response.getStatus());
+            else
+                System.out.printf("Message sent: bot: %s `%s`\n", payload.botId, messageOut.type);
         }
     }
 

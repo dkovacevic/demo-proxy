@@ -7,7 +7,7 @@ RUN apt-get update \
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
 COPY target/echo-jar-with-dependencies.jar /opt/echo/echo.jar
-COPY echo.yaml                             /opt/echo/echo.yaml
+COPY echo.yaml                             /etc/echo/echo.yaml
 
 WORKDIR /opt/echo
 
