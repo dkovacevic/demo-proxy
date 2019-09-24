@@ -6,21 +6,16 @@ import com.wire.bots.echo.model.MessageOut;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path("/echo/webhook")
+@Path("/echo/webhook/v2")
 @Produces(MediaType.APPLICATION_JSON)
-public class Webhook {
-    private final WebTarget proxy;
+public class WebhookV2 {
     private final String authentication;
 
-    public Webhook(Client client, String proxyUrl, String authentication) {
+    public WebhookV2(String authentication) {
         this.authentication = authentication;
-        this.proxy = client.target(proxyUrl);
     }
 
     @GET
@@ -43,54 +38,37 @@ public class Webhook {
 
         System.out.printf("Webhook: bot: %s `%s` from: %s\n", payload.botId, payload.type, payload.userId);
 
-        Response response = null;
         MessageOut messageOut = new MessageOut();
 
         switch (payload.type) {
             case "conversation.init": {
                 messageOut.type = "text";
                 messageOut.text = "Hi there!";
-                response = proxy
-                        .path("conversation")
-                        .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", payload.token)
-                        .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
+                return Response.
+                        ok(messageOut).
+                        build();
             }
-            break;
             case "conversation.new_text": {
                 messageOut.type = "text";
                 messageOut.text = "You wrote: " + payload.text;
-                response = proxy
-                        .path("conversation")
-                        .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", payload.token)
-                        .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
+                return Response.
+                        ok(messageOut).
+                        build();
             }
-            break;
             case "conversation.new_image": {
                 messageOut.type = "image";
                 messageOut.image = payload.image;
-                response = proxy
-                        .path("conversation")
-                        .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", payload.token)
-                        .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
+                return Response.
+                        ok(messageOut).
+                        build();
             }
-            break;
             case "conversation.user_joined": {
                 messageOut.type = "text";
                 messageOut.text = "Hello!";
-                response = proxy
-                        .path("conversation")
-                        .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", payload.token)
-                        .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
+                return Response.
+                        ok(messageOut).
+                        build();
             }
-            break;
-        }
-
-        if (response != null && response.getStatus() != 200) {
-            System.out.printf("Webhook: %s %d\n", response.readEntity(String.class), response.getStatus());
         }
 
         return Response.

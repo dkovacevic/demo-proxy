@@ -2,6 +2,7 @@ package com.wire.bots.echo;
 
 import com.wire.bots.echo.model.Config;
 import com.wire.bots.echo.resource.Webhook;
+import com.wire.bots.echo.resource.WebhookV2;
 import io.dropwizard.Application;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.client.JerseyClientConfiguration;
@@ -30,5 +31,7 @@ public class Service extends Application<Config> {
 
         // Use Webhook to receive events from the Wire Backend
         environment.jersey().register(new Webhook(client, config.proxyUrl, config.authentication));
+        environment.jersey().register(new WebhookV2(config.authentication));
+
     }
 }

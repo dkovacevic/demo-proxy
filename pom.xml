@@ -55,7 +55,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.wire.bots.echo.Service</mainClass>
+                            <mainClass>com.wire.bots.echo.WebSocket</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
