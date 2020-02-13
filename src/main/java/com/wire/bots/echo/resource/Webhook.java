@@ -53,7 +53,7 @@ public class Webhook {
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", payload.token)
+                        .header("Authorization", "Bearer " + payload.token)
                         .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
             }
             break;
@@ -63,7 +63,7 @@ public class Webhook {
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", payload.token)
+                        .header("Authorization", "Bearer " + payload.token)
                         .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
             }
             break;
@@ -73,7 +73,7 @@ public class Webhook {
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", payload.token)
+                        .header("Authorization", "Bearer " + payload.token)
                         .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
             }
             break;
@@ -83,7 +83,7 @@ public class Webhook {
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", payload.token)
+                        .header("Authorization", "Bearer " + payload.token)
                         .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
             }
             break;

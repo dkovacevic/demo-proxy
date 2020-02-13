@@ -35,12 +35,13 @@ public class WebSocket {
                 .withConfig(config)
                 .build();
 
-        final String wssUrl = "wss://services.zinfra.io/proxy/await";
-        final String proxyUrl = "https://services.zinfra.io/proxy";
+        final String wssUrl = "wss://services.wire.com/proxy";
+        final String proxyUrl = "https://services.wire.com/proxy";
         final String appKey = args[0];
 
         URI wss = client
                 .target(wssUrl)
+                .path("await")
                 .path(appKey)
                 .getUri();
 
@@ -57,12 +58,12 @@ public class WebSocket {
             @Override
             public boolean onConnectFailure(Exception e) {
                 System.out.printf("Websocket onConnectFailure: reason: %s\n", e);
-                return true;
+                return false;
             }
 
             @Override
             public long getDelay() {
-                return 0L;
+                return 5L;
             }
         });
 
@@ -92,7 +93,7 @@ public class WebSocket {
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", payload.token)
+                        .header("Authorization", "Bearer " + payload.token)
                         .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
             }
             break;
@@ -104,7 +105,7 @@ public class WebSocket {
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", payload.token)
+                        .header("Authorization", "Bearer " + payload.token)
                         .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
             }
             break;
@@ -116,7 +117,7 @@ public class WebSocket {
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", payload.token)
+                        .header("Authorization", "Bearer " + payload.token)
                         .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
             }
             break;
@@ -126,7 +127,7 @@ public class WebSocket {
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", payload.token)
+                        .header("Authorization", "Bearer " + payload.token)
                         .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
             }
             break;
