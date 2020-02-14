@@ -2,8 +2,10 @@ package com.wire.bots.echo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.wire.bots.echo.model.Conversation;
 import com.wire.bots.echo.model.MessageIn;
 import com.wire.bots.echo.model.MessageOut;
+import com.wire.bots.echo.model.User;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
@@ -51,7 +53,7 @@ public class WebSocket {
         container.getProperties().put(ClientProperties.RECONNECT_HANDLER, new ClientManager.ReconnectHandler() {
             @Override
             public boolean onDisconnect(CloseReason closeReason) {
-                //System.out.printf("Websocket onDisconnect: reason: %s\n", closeReason.getCloseCode());
+                System.out.printf("Websocket onDisconnect: reason: %s\n", closeReason.getCloseCode());
                 return true;
             }
 
@@ -75,7 +77,7 @@ public class WebSocket {
 
     @OnOpen
     public void onOpen(Session session) {
-        //System.out.printf("Websocket open: %s\n", session.getId());
+        System.out.printf("Websocket open: %s\n", session.getId());
     }
 
     @OnMessage
@@ -88,8 +90,18 @@ public class WebSocket {
 
         switch (payload.type) {
             case "conversation.init": {
+
+                // fetch user profile so could extract the name. We dont need it but this way is more fun
+                User user = proxy
+                        .path("users")
+                        .path(payload.userId.toString())
+                        .request(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + payload.token)
+                        .get(User.class);
+
+                // send the text into a conv.
                 messageOut.type = "text";
-                messageOut.text = "Hi there!";
+                messageOut.text = "Hello " + user.name;
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
@@ -100,8 +112,16 @@ public class WebSocket {
             case "conversation.new_text": {
                 assert payload.isValidText();
 
+                // fetch conversation object because: Why not?
+                final Conversation conversation = proxy
+                        .path("conversation")
+                        .request(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + payload.token)
+                        .get(Conversation.class);
+
+                // send the text into a conv.
                 messageOut.type = "text";
-                messageOut.text = "You wrote: " + payload.text;
+                messageOut.text = String.format("You wrote: '%s' in group: '%s'", payload.text, conversation.name);
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
@@ -111,7 +131,7 @@ public class WebSocket {
             break;
             case "conversation.new_image": {
                 assert payload.isValidImage();
-                
+
                 messageOut.type = "image";
                 messageOut.image = payload.image;
                 response = proxy
@@ -122,8 +142,16 @@ public class WebSocket {
             }
             break;
             case "conversation.user_joined": {
+                // fetch user profile so could extract the name. We dont need it but this way is more fun
+                User user = proxy
+                        .path("users")
+                        .path(payload.userId.toString())
+                        .request(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + payload.token)
+                        .get(User.class);
+
                 messageOut.type = "text";
-                messageOut.text = "Hello!";
+                messageOut.text = "Welcome " + user.name;
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
@@ -147,7 +175,7 @@ public class WebSocket {
 
     @OnClose
     public void onClose(Session closed, CloseReason reason) {
-        //System.out.printf("Websocket closed: %s: reason: %s\n", closed.getId(), reason.getCloseCode());
+        System.out.printf("Websocket closed: %s: reason: %s\n", closed.getId(), reason.getCloseCode());
     }
 
     public static class _Decoder implements Decoder.Text<MessageIn> {
