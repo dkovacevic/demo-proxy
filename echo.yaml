@@ -1,2 +1,1 @@
-proxy_url: https://services.wire.com/proxy
-service_authentication:
+service_authentication: 'Bearer secret'

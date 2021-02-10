@@ -2,10 +2,7 @@ package com.wire.bots.echo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.wire.bots.echo.model.Conversation;
-import com.wire.bots.echo.model.MessageIn;
-import com.wire.bots.echo.model.MessageOut;
-import com.wire.bots.echo.model.User;
+import com.wire.bots.echo.model.*;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
@@ -37,8 +34,8 @@ public class WebSocket {
                 .withConfig(config)
                 .build();
 
-        final String wssUrl = "wss://services.wire.com/proxy";
-        final String proxyUrl = "https://services.wire.com/proxy";
+        final String wssUrl = "wss://proxy.services.wire.com";
+        final String proxyUrl = "https://proxy.services.wire.com";
         final String appKey = args[0];
 
         URI wss = client
@@ -84,24 +81,20 @@ public class WebSocket {
     public void onMessage(MessageIn payload) {
         System.out.printf("onMessage: `%s` bot: %s from: %s\n", payload.type, payload.botId, payload.userId);
 
-        Response response = null;
+        // fetch user profile so could extract the name. We dont need it but this way is more fun
+        User user = proxy
+                .path("users")
+                .path(payload.userId.toString())
+                .request(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + payload.token)
+                .get(User.class);
 
-        MessageOut messageOut = new MessageOut();
+        Response response = null;
 
         switch (payload.type) {
             case "conversation.init": {
-
-                // fetch user profile so could extract the name. We dont need it but this way is more fun
-                User user = proxy
-                        .path("users")
-                        .path(payload.userId.toString())
-                        .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + payload.token)
-                        .get(User.class);
-
                 // send the text into a conv.
-                messageOut.type = "text";
-                messageOut.text = "Hello " + user.name;
+                TextMessage messageOut = new TextMessage("Hello " + user.name);
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
@@ -120,8 +113,8 @@ public class WebSocket {
                         .get(Conversation.class);
 
                 // send the text into a conv.
-                messageOut.type = "text";
-                messageOut.text = String.format("You wrote: '%s' in group: '%s'", payload.text, conversation.name);
+                String txt = String.format("You wrote: '%s' in group: '%s'", payload.text, conversation.name);
+                TextMessage messageOut = new TextMessage(txt);
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
@@ -132,8 +125,7 @@ public class WebSocket {
             case "conversation.new_image": {
                 assert payload.isValidImage();
 
-                messageOut.type = "image";
-                messageOut.image = payload.image;
+                FileMessage messageOut = new FileMessage("cool.jpg", payload.image, payload.mimeType);
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
@@ -142,16 +134,7 @@ public class WebSocket {
             }
             break;
             case "conversation.user_joined": {
-                // fetch user profile so could extract the name. We dont need it but this way is more fun
-                User user = proxy
-                        .path("users")
-                        .path(payload.userId.toString())
-                        .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + payload.token)
-                        .get(User.class);
-
-                messageOut.type = "text";
-                messageOut.text = "Welcome " + user.name;
+                TextMessage messageOut = new TextMessage("Welcome " + user.name);
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
@@ -162,14 +145,14 @@ public class WebSocket {
         }
 
         if (response != null) {
-            if (response.getStatus() != 200)
-                System.out.printf("ERROR sending Message: bot: %s `%s` error: %s, code: %d\n",
+            if (response.getStatus() != 200) {
+                System.out.printf("ERROR sending Message: bot: %s error: %s, code: %d\n",
                         payload.botId,
-                        messageOut.type,
                         response.readEntity(String.class),
                         response.getStatus());
-            else
-                System.out.printf("Message sent: bot: %s `%s`\n", payload.botId, messageOut.type);
+            } else {
+                System.out.printf("Message sent: bot: %s\n", payload.botId);
+            }
         }
     }
 
