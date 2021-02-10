@@ -22,6 +22,7 @@ public class MessageIn {
 
     public String text;
     public String image;
+    public String mimeType;
 
     @ValidationMethod(message = "`text` cannot be empty")
     @JsonIgnore
