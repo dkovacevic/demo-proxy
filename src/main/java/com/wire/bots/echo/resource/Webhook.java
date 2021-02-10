@@ -1,24 +1,21 @@
 package com.wire.bots.echo.resource;
 
+import com.wire.bots.echo.filters.WireAuthorization;
 import com.wire.bots.echo.model.FileMessage;
 import com.wire.bots.echo.model.MessageIn;
 import com.wire.bots.echo.model.TextMessage;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Path("/echo/webhook")
 @Produces(MediaType.APPLICATION_JSON)
 public class Webhook {
-    private final String authentication;
-
-    public Webhook(String authentication) {
-        this.authentication = authentication;
-    }
-
     @GET
     public Response status() {
         return Response.
@@ -27,16 +24,8 @@ public class Webhook {
     }
 
     @POST
-    public Response post(@NotNull @HeaderParam("Authorization") String authentication,
-                         @Valid MessageIn payload) {
-
-        if (this.authentication != null && !this.authentication.equals(authentication)) {
-            System.out.printf("Webhook: Invalid authentication `%s`\n", authentication);
-            return Response.
-                    status(401).
-                    build();
-        }
-
+    @WireAuthorization
+    public Response post(@Valid MessageIn payload) {
         System.out.printf("Webhook: bot: %s `%s` from: %s\n", payload.botId, payload.type, payload.userId);
 
         switch (payload.type) {
@@ -53,7 +42,7 @@ public class Webhook {
                         build();
             }
             case "conversation.new_image": {
-                FileMessage msg = new FileMessage("cool.jpg", payload.image, "image/jpeg");
+                FileMessage msg = new FileMessage("cool.jpg", payload.image, payload.mimeType);
                 return Response.
                         ok(msg).
                         build();
