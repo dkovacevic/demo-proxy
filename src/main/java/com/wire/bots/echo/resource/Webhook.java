@@ -1,21 +1,30 @@
 package com.wire.bots.echo.resource;
 
 import com.wire.bots.echo.filters.WireAuthorization;
-import com.wire.bots.echo.model.FileMessage;
-import com.wire.bots.echo.model.MessageIn;
-import com.wire.bots.echo.model.TextMessage;
+import com.wire.bots.echo.model.*;
 
 import javax.validation.Valid;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path("/echo/webhook")
+@Path("/api/wire")
 @Produces(MediaType.APPLICATION_JSON)
 public class Webhook {
+    private final Client httpClient;
+    private final Config config;
+
+    public Webhook(Client httpClient, Config config) {
+
+        this.httpClient = httpClient;
+        this.config = config;
+    }
+
     @GET
     public Response status() {
         return Response.
@@ -30,27 +39,51 @@ public class Webhook {
 
         switch (payload.type) {
             case "conversation.init": {
-                TextMessage msg = new TextMessage("Hi there!");
+                MessageOut message = new MessageOut();
+                message.text = new Text();
+                message.text.data = "Hi there!";
                 return Response.
-                        ok(msg).
+                        ok(message).
                         build();
             }
             case "conversation.new_text": {
-                TextMessage msg = new TextMessage("You wrote: " + payload.text);
-                return Response.
-                        ok(msg).
-                        build();
-            }
-            case "conversation.new_image": {
-                FileMessage msg = new FileMessage("cool.jpg", payload.image, payload.mimeType);
-                return Response.
-                        ok(msg).
-                        build();
+//                TextMessage msg = new TextMessage("You wrote: " + payload.text);
+//                return Response.
+//                        ok(msg).
+//                        build();
+                break;
             }
             case "conversation.user_joined": {
-                TextMessage msg = new TextMessage("Hey!");
+                MessageOut message = new MessageOut();
+                message.text = new Text();
+                message.text.data = "Hey!";
+
                 return Response.
-                        ok(msg).
+                        ok(message).
+                        build();
+            }
+            case "conversation.ping": {
+                MessageOut message = new MessageOut();
+                message.type = "call";
+                message.call = new Call();
+                message.call.response = false;
+                message.call.secret = config.sftPassword;
+                message.call.sessionId = "";
+                message.call.sftUrl = config.sftUrl;
+                message.call.type = "CONFSTART";
+                message.call.clientId = payload.conversationId.toString();
+
+                final Response post = httpClient.target(config.romanUrl)
+                        .path("api")
+                        .path("broadcast")
+                        .request(MediaType.APPLICATION_JSON)
+                        .header("app-key", config.appKey)
+                        .post(Entity.entity(message, MediaType.APPLICATION_JSON));
+
+                System.out.printf("Broadcast confstart. confId: %s status: %s\n", message.call.clientId, post.getStatus());
+
+                return Response.
+                        ok().
                         build();
             }
         }

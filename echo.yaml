@@ -1,1 +1,5 @@
-service_authentication: 'Bearer secret'
+service_token: ${SERVICE_TOKEN:-}
+roman_url: ${ROMAN_URL:-https://roman.integrations.zinfra.io}
+app_key: ${APP_KEY:-}
+sft_url: ${SFT_URL:-}
+sft_password: ${SFT_PASSWORD:-}
