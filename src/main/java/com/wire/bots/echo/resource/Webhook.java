@@ -47,11 +47,12 @@ public class Webhook {
                         build();
             }
             case "conversation.new_text": {
-//                TextMessage msg = new TextMessage("You wrote: " + payload.text);
-//                return Response.
-//                        ok(msg).
-//                        build();
-                break;
+                MessageOut message = new MessageOut();
+                message.text = new Text();
+                message.text.data = "You wrote: " + payload.text;
+                return Response.
+                        ok(message).
+                        build();
             }
             case "conversation.user_joined": {
                 MessageOut message = new MessageOut();
@@ -62,35 +63,39 @@ public class Webhook {
                         ok(message).
                         build();
             }
-            case "conversation.ping": {
-                MessageOut message = new MessageOut();
-                message.type = "call";
-                message.call = new Call();
-                message.call.response = false;
-                message.call.secret = config.sftPassword;
-                message.call.sessionId = "";
-                message.call.sftUrl = config.sftUrl;
-                message.call.type = "CONFSTART";
-                message.call.clientId = payload.conversationId.toString();
+            case "conversation.call": {
+                final Call call = payload.call;
+                System.out.printf("conversation.call: type: %s\n", call.type);
 
-                final Response post = httpClient.target(config.romanUrl)
-                        .path("api")
-                        .path("broadcast")
-                        .request(MediaType.APPLICATION_JSON)
-                        .header("app-key", config.appKey)
-                        .post(Entity.entity(message, MediaType.APPLICATION_JSON));
+                if (call.confId == null) {
+                    MessageOut message = new MessageOut();
+                    message.type = "call";
+                    message.call = call;
+                    message.call.confId = payload.conversationId.toString();
 
-                System.out.printf("Broadcast confstart. confId: %s status: %s\n", message.call.clientId, post.getStatus());
-
-                return Response.
-                        ok().
-                        build();
+                    broadcast(message);
+                }
+                break;
             }
         }
 
         return Response.
                 ok().
                 build();
+    }
+
+    private void broadcast(MessageOut message) {
+        final Response post = httpClient.target(config.romanUrl)
+                .path("api")
+                .path("broadcast")
+                .request(MediaType.APPLICATION_JSON)
+                .header("app-key", config.appKey)
+                .post(Entity.entity(message, MediaType.APPLICATION_JSON));
+
+        System.out.printf("Broadcast %s. confId: %s status: %s\n",
+                message.call.type,
+                message.call.confId,
+                post.getStatus());
     }
 }
 
