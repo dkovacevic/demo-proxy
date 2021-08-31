@@ -1,16 +1,37 @@
-FROM ubuntu:xenial
+FROM maven:3-openjdk-11 AS build
+LABEL description="Wire Echo Bot"
+LABEL project="wire-bots:echo-bot"
 
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update \
-    && apt-get install openjdk-8-jre-headless -qqy --no-install-recommends
+WORKDIR /app
 
-ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+# download dependencies
+COPY pom.xml ./
+RUN mvn verify --fail-never -U
 
-COPY target/echo-jar-with-dependencies.jar /opt/echo/echo.jar
-COPY echo.yaml                             /etc/echo/echo.yaml
+# build
+COPY . ./
+RUN mvn -Dmaven.test.skip=true package
+
+# runtime stage
+FROM wirebot/runtime
 
 WORKDIR /opt/echo
 
-EXPOSE  8080
+# Copy libraries
+# COPY libs/libblender.so /opt/wire/lib/
 
-CMD ["sh", "-c", "/usr/bin/java -jar echo.jar"]
+# Copy configuration
+COPY echo.yaml /opt/echo/
+
+# Copy built target
+COPY --from=build /app/target/echo.jar /opt/echo/
+
+# create version file
+ARG release_version=development
+ENV RELEASE_FILE_PATH=/opt/echo/release.txt
+RUN echo $release_version > $RELEASE_FILE_PATH
+
+EXPOSE  8080 8081 8082
+
+ENTRYPOINT ["java", "-javaagent:/opt/wire/lib/prometheus-agent.jar=8082:/opt/wire/lib/metrics.yaml", "-jar", "echo.jar", "server", "echo.yaml"]
+

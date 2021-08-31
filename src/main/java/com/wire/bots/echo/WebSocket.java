@@ -2,7 +2,10 @@ package com.wire.bots.echo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.wire.bots.echo.model.*;
+import com.wire.bots.echo.model.MessageIn;
+import com.wire.bots.echo.model.MessageOut;
+import com.wire.bots.echo.model.Text;
+import com.wire.bots.echo.model.User;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
@@ -92,54 +95,19 @@ public class WebSocket {
         Response response = null;
 
         switch (payload.type) {
-            case "conversation.init": {
-                // send the text into a conv.
-                TextMessage messageOut = new TextMessage("Hello " + user.name);
-                response = proxy
-                        .path("conversation")
-                        .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + payload.token)
-                        .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
-            }
-            break;
-            case "conversation.new_text": {
-                assert payload.isValidText();
-
-                // fetch conversation object because: Why not?
-                final Conversation conversation = proxy
-                        .path("conversation")
-                        .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + payload.token)
-                        .get(Conversation.class);
-
-                // send the text into a conv.
-                String txt = String.format("You wrote: '%s' in group: '%s'", payload.text, conversation.name);
-                TextMessage messageOut = new TextMessage(txt);
-                response = proxy
-                        .path("conversation")
-                        .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + payload.token)
-                        .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
-            }
-            break;
-            case "conversation.new_image": {
-                assert payload.isValidImage();
-
-                FileMessage messageOut = new FileMessage("cool.jpg", payload.image, payload.mimeType);
-                response = proxy
-                        .path("conversation")
-                        .request(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + payload.token)
-                        .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
-            }
-            break;
+            case "conversation.init":
             case "conversation.user_joined": {
-                TextMessage messageOut = new TextMessage("Welcome " + user.name);
+
+                // send the text into a conv.
+                MessageOut message = new MessageOut();
+                message.text = new Text();
+                message.text.data = "Hey!";
+
                 response = proxy
                         .path("conversation")
                         .request(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Bearer " + payload.token)
-                        .post(Entity.entity(messageOut, MediaType.APPLICATION_JSON));
+                        .post(Entity.entity(message, MediaType.APPLICATION_JSON));
             }
             break;
         }
