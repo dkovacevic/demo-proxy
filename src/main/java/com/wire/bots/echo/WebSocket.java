@@ -100,6 +100,7 @@ public class WebSocket {
 
                 // send the text into a conv.
                 MessageOut message = new MessageOut();
+                message.type = "text";
                 message.text = new Text();
                 message.text.data = "Hey!";
 
