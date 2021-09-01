@@ -41,6 +41,7 @@ public class Webhook {
             case "conversation.init": {
                 MessageOut message = new MessageOut();
                 message.text = new Text();
+                message.type = "text";
                 message.text.data = "Hi there!";
                 return Response.
                         ok(message).
@@ -48,14 +49,16 @@ public class Webhook {
             }
             case "conversation.new_text": {
                 MessageOut message = new MessageOut();
+                message.type = "text";
                 message.text = new Text();
-                message.text.data = "You wrote: " + payload.text;
+                message.text.data = "You wrote: " + payload.text.data;
                 return Response.
                         ok(message).
                         build();
             }
             case "conversation.user_joined": {
                 MessageOut message = new MessageOut();
+                message.type = "text";
                 message.text = new Text();
                 message.text.data = "Hey!";
 
