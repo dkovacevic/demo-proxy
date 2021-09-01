@@ -1,12 +1,26 @@
 # demo-proxy
-Wire Bot that uses Proxy
+Wire Echo Bot that uses Roman
 
-# exposed web hook
+# exposed web hook on 8080 port
+```
 POST    /api/wire
+```
 
-# build image
+# Liveliness probe
+```
+GET    /api/wire
+```
+
+# build the image
+```
 docker build -t echo:latest .
+```
 
-# run container
-docker run --name echo --rm echo:latest -e SERVICE_TOKEN='your service token' -e ROMAN_URL='URL for your roman' -e APP_KEY='your app key'
-
+# run in a container
+```
+docker run --name echo --rm echo:latest \
+  -e SERVICE_TOKEN='your service token' \
+  -e ROMAN_URL='URL for your roman' \
+  -e APP_KEY='your app key' \
+  -p 8080:8080
+```
